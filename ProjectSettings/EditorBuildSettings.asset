@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Launcher.unity
+    guid: 3a6adf06b3fe043488dcfd533de86a69
+  - enabled: 1
+    path: Assets/Scenes/EndScene.unity
+    guid: 34e60ba55c60b5441972103095c3494e
+  - enabled: 1
+    path: Assets/Scenes/PlayScene.unity
+    guid: 61731cbefa7b81d449b3eab85b3d8365
+  - enabled: 1
+    path: Assets/Scenes/PreRoomLobbyScene.unity
+    guid: a8380f13f88fa4d4187696a2c5696fa2
+  - enabled: 1
+    path: Assets/Scenes/RoomLobbyScene.unity
+    guid: 31ab5334d34cc3e468f7f914b85f8245
+  - enabled: 1
+    path: Assets/Scenes/BlockTutorial.unity
+    guid: f097e37d88ae1f6409372027a229b855
+  - enabled: 1
+    path: Assets/Scenes/TutorialPart1.unity
+    guid: 57179a8af850f8d42be09eea1ec9da15
+  - enabled: 1
+    path: Assets/Scenes/CoordinationScene.unity
+    guid: 0bb3c71093273f242a8bb49876380804
+  - enabled: 1
+    path: Assets/Scenes/BlockScene.unity
+    guid: 14ccf354ec084c54f996a2fc4ebbc21b
+  - enabled: 1
+    path: Assets/Scenes/BlockTutPart1.unity
+    guid: 30cf9f8132e813b49b27a508b7b39336
+  - enabled: 1
+    path: Assets/Scenes/TutorialScene.unity
+    guid: 332522d302df1a94bb701e9f5b96464c
+  m_configObjects: {}

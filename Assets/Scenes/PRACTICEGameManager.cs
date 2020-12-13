@@ -1,0 +1,372 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using ExitGames.Client.Photon;
+using Photon.Pun;
+using Photon.Realtime;
+using UnityEngine.UI;
+//using System.Numerics;
+
+public class PRACTICEGameManager : MonoBehaviour
+{
+
+    public int Game_duration = 120;
+    static List<string> CommonList = new List<string>();
+
+    static string Commonoutput = null;
+    [Tooltip("The prefab to use for representing the player")]
+    public GameObject playerPrefab;
+
+    public static Dictionary<int, int> prestigeList;
+    public static Dictionary<int, int> voteList;
+
+    public int NumberOfGames = 6;
+
+    //Dictionary<int, GameObject> Player_objects;
+
+    private void Start()
+    {
+        //prestigeList = new Dictionary<int, int>();
+        //voteList = new Dictionary<int, int>();
+        //// ScoreMenu.instance._canvas.gameObject.SetActive(false);
+
+        //if (PhotonNetwork.NickName == "spectator")
+        //    ScoreMenu.instance._canvas.gameObject.SetActive(false);
+
+        ////PhotonNetwork.PlayerList[0].GetPlayerNumber()
+
+
+        //for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
+        //{
+        //    Debug.Log("menr man " + PhotonNetwork.PlayerList[i].ActorNumber);
+        //    int actnumber = PhotonNetwork.PlayerList[i].ActorNumber;
+        //    //if (actnumber == 1)
+        //    //    actnumber = 0; // hacky fix for the actornumber of the first player being zero instead of 1
+        //    if (PhotonNetwork.PlayerList[i].NickName != "spectator")
+        //    {
+        //        prestigeList.Add(actnumber, 0);
+        //        voteList.Add(actnumber, 0);
+        //    }
+        //}
+
+        //CommonList = new List<string>();
+        //CommonList.Add("999999999999999999999999999999999999999999999999999999999999999");
+
+        List<Vector3> SpawnPositions = new List<Vector3>();
+        SpawnPositions.Add(new Vector3(-10, 5, 10));
+        SpawnPositions.Add(new Vector3(10, 5, -10));
+        SpawnPositions.Add(new Vector3(10, 5, 10));
+        SpawnPositions.Add(new Vector3(-10, 5, -10));
+
+        SpawnPositions.Add(new Vector3(0, 5, 10));
+        SpawnPositions.Add(new Vector3(0, 5, -10));
+        SpawnPositions.Add(new Vector3(10, 5, 0));
+        SpawnPositions.Add(new Vector3(-10, 5, 0));
+        SpawnPositions.Add(new Vector3(-5, 5, 0));
+        SpawnPositions.Add(new Vector3(5, 5, 0));
+
+        List<int> SpawnRotations = new List<int>();
+        SpawnRotations.Add(135);
+        SpawnRotations.Add(-45);
+        SpawnRotations.Add(-135);
+        SpawnRotations.Add(45);
+
+        SpawnRotations.Add(180);
+        SpawnRotations.Add(0);
+        SpawnRotations.Add(-90);
+        SpawnRotations.Add(90);
+        SpawnRotations.Add(90);
+        SpawnRotations.Add(-90);
+
+
+        //List<Quaternion> SpawnRotations = new List<Quaternion>();
+        //SpawnPositions.Add(new Quaternion.Euler(90, 0, 0));
+        //SpawnPositions.Add(new Vector3(5, 5, -5));
+        //SpawnPositions.Add(new Vector3(5, 5, 5));
+        //SpawnPositions.Add(new Vector3(-5, 5, -5));
+
+        //int PlayerNumber = PhotonNetwork.LocalPlayer.ActorNumber;
+
+        //if (PhotonNetwork.NickName != "spectator")
+        //{
+
+        //    if (playerPrefab == null)
+        //    {
+        //        Debug.LogError("<Color=Red><a>Missing</a></Color> playerPrefab Reference. Please set it up in GameObject 'Game Manager'", this);
+        //    }
+        //    else
+        //    {
+        //        if (PlayerManager.LocalPlayerInstance == null)
+        //        {
+        //            Debug.LogFormat("We are Instantiating LocalPlayer from {0}", SceneManagerHelper.ActiveSceneName);
+        //            // we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
+
+        //            bool SpectatorExists = false;
+        //            foreach (Player player in PhotonNetwork.PlayerList)
+        //            {
+
+        //                if (player.NickName == "spectator")
+        //                {
+        //                    SpectatorExists = true;
+        //                }
+        //            }
+
+        //            if (SpectatorExists == true)
+        //            {
+        //                GameObject spawned_player = PhotonNetwork.Instantiate(this.playerPrefab.name, SpawnPositions[PlayerNumber - 2], Quaternion.Euler(0, SpawnRotations[PlayerNumber - 2], 0), 0);
+        //            }
+        //            else
+        //            {
+        //                GameObject spawned_player = PhotonNetwork.Instantiate(this.playerPrefab.name, SpawnPositions[PlayerNumber - 1], Quaternion.Euler(0, SpawnRotations[PlayerNumber - 1], 0), 0);
+        //            }
+        //            Debug.Log("playerid " + PlayerNumber);
+
+        //            //Player_objects.Add(PlayerNumber, spawned_player);
+        //        }
+        //        else
+        //        {
+        //            Debug.LogFormat("Ignoring scene load for {0}", SceneManagerHelper.ActiveSceneName);
+        //        }
+        //    }
+        //}
+
+        //InvokeRepeating("OutputCommondata", 1f, 1f);
+        // ScoreMenu.instance._canvas.gameObject.SetActive(false);
+        StartCoroutine("EndGame");
+        // InvokeRepeating("TurnoffCanvasBU", 1f, 2f);
+    }
+
+    //void TurnoffCanvasBU()
+    //{
+
+    //        ScoreMenu.instance._canvas.gameObject.SetActive(false);
+
+    //}
+
+
+    IEnumerator EndGame()
+    {
+
+        for (int i = 0; i < Game_duration / 10; i++)
+        {
+            yield return new WaitForSeconds(10);
+            PlayerManager.SendGameData();
+
+        }
+
+
+
+
+
+
+        // Debug.Log("total score + " + LavaSpawner.Total_Score.ToString());
+        //ScoreMenu.Gamecounter += 1;
+        // if (PhotonNetwork.IsMasterClient)
+        // {
+        //PhotonView photonView = PhotonView.Get(this);
+        //photonView.RPC("ScoreUpdate", RpcTarget.All, LavaSpawnerv2.Total_Score);
+        //ScoreMenu.Update_Score(LavaSpawnerv2.Total_Score, LavaSpawnerv2.Max_Total_Score);
+        // }
+        PlayerManager.SendGameData();
+        yield return new WaitForSeconds(2);
+
+
+        //if (PhotonNetwork.IsMasterClient)
+        //{
+        //    //PlayerManager.SendGameData();
+        //    // photonView.RPC("NetSendGameData", RpcTarget.All);
+
+        //    if (ScoreMenu.Gamecounter <= NumberOfGames)
+        //    {
+
+        //        PhotonNetwork.LoadLevel("RoomLobbyScene");
+        //    }
+        //    else
+        //    {
+        //        PhotonNetwork.LoadLevel("EndScene");
+        //    }
+        //}
+
+
+    }
+
+    //[PunRPC]
+    //void ScoreUpdate(float Total_Score)
+    //{
+    //    ScoreMenu.Update_Score(Total_Score);
+
+    //}
+    //[PunRPC]
+    //void NetSendGameData()
+    //{
+    //    PlayerManager.SendGameData();
+    //}
+
+
+
+    private void Update()
+    {
+    //    if (PhotonNetwork.NickName == "spectator")
+    //    {
+    //        PhotonView[] View_array = PhotonNetwork.PhotonViews;
+    //        foreach (PhotonView view in View_array)
+    //        {
+
+
+    //            if (!view.IsMine)
+    //            {
+    //                GameObject Player_object = view.gameObject;//
+
+    //                if (Player_object.tag == "Player")
+    //                {
+    //                    if (view.gameObject.transform.GetChild(1).gameObject.activeSelf == false)
+    //                        view.gameObject.transform.GetChild(1).gameObject.SetActive(true);
+
+    //                    view.gameObject.transform.GetChild(1).GetComponent<TextMesh>().text = (view.OwnerActorNr - 1).ToString();
+
+    //                    if (view.gameObject.transform.GetComponent<PlayerManager>().dominanceON == true)
+    //                    {
+    //                        view.gameObject.transform.GetChild(2).gameObject.SetActive(true);
+    //                    }
+    //                    else
+    //                    {
+    //                        view.gameObject.transform.GetChild(2).gameObject.SetActive(false);
+    //                    }
+
+
+
+    //                }
+    //            }
+
+    //        }
+    //    }
+    }
+
+
+    //#region Photon Callbacks
+
+
+    ///// <summary>
+    ///// Called when the local player left the room. We need to load the launcher scene.
+    ///// </summary>
+    //public override void OnLeftRoom()
+    //{
+    //    SceneManager.LoadScene(0);
+    //}
+
+
+    //#endregion
+
+
+    //#region Public Methods
+
+
+    //public void LeaveRoom()
+    //{
+    //    PhotonNetwork.LeaveRoom();
+    //}
+
+
+    //#endregion
+
+    //#region Private Methods
+
+
+    ////void LoadArena()
+    ////{
+    ////    if (!PhotonNetwork.IsMasterClient)
+    ////    {
+    ////        Debug.LogError("PhotonNetwork : Trying to Load a level but we are not the master Client");
+    ////    }
+    ////    Debug.LogFormat("PhotonNetwork : Loading Level : {0}", PhotonNetwork.CurrentRoom.PlayerCount);
+    ////    PhotonNetwork.LoadLevel("Room for 1");// + PhotonNetwork.CurrentRoom.PlayerCount);
+    ////}
+
+
+
+    //#endregion
+
+    //#region Photon Callbacks
+
+
+    //public override void OnPlayerEnteredRoom(Player other)
+    //{
+    //    Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
+
+
+    //    if (PhotonNetwork.IsMasterClient)
+    //    {
+    //        Debug.LogFormat("OnPlayerEnteredRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
+
+
+    //        //LoadArena();
+    //    }
+    //}
+
+
+    //public override void OnPlayerLeftRoom(Player other)
+    //{
+    //    Debug.LogFormat("OnPlayerLeftRoom() {0}", other.NickName); // seen when other disconnects
+
+
+    //    if (PhotonNetwork.IsMasterClient)
+    //    {
+    //        Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
+
+    //        //LoadArena();
+    //    }
+    //}
+
+
+
+
+
+    ////public static void OutputPlayervars(int ID, float tempvar)
+    ////{
+    ////    if (ID == 1)
+    ////    {
+    ////        CommonList[0] = tempvar.ToString();
+    ////    }
+    ////    else
+    ////    {
+
+
+    ////        CommonList[1] = tempvar.ToString();
+
+    ////    }
+
+
+    ////}
+
+    //void OnFailedToConnectToPhoton(DisconnectCause cause)
+    //{
+    //    Debug.LogWarningFormat(this, "OnFailedToConnectToPhoton, cause {0}", cause);
+    //}
+
+    //void OnConnectionFail(DisconnectCause cause)
+    //{
+    //    Debug.LogWarningFormat(this, "OnConnectionFail, cause {0}", cause);
+    //}
+
+
+    //void OutputCommondata()
+    //{
+
+    //    var JointStrings = String.Join(",", CommonList);
+
+
+    //    byte evCode = 2; // Custom Event 1: Used as "MoveUnitsToTargetPosition" event
+    //    object[] content = new object[] { JointStrings }; // Array contains the target position and the IDs of the selected units
+    //    var flags = new WebFlags(WebFlags.HttpForwardConst);
+    //    RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All, Flags = flags }; // You would have to set the Receivers to All in order to receive this event on the local client as well
+    //    SendOptions sendOptions = new SendOptions { Reliability = true };
+    //    PhotonNetwork.RaiseEvent(evCode, content, raiseEventOptions, sendOptions);
+    //    Debug.Log(JointStrings);
+
+    //}
+
+    //#endregion
+}
