@@ -167,7 +167,7 @@ Some of these scripts have a version that is specific to a tutorial (with prefix
 **The number of trials** can be changed by changing the variable "NumberOfGames" in the GameManager and **adding a new spawning sequence** in the LavaSpawnerv2 script by modifying the funtion "DefineSequence".
 **The player avatar** can be easily changed by going to Assets-> resources -> PlayPref and changing the "Bulldozer" mesh to a 3D mesh of your choosing
 
-Other recommended changes and experiment variations will be added incrementally added.
+Other recommended changes and experiment variations will be added incrementally.
 
 
 ## Further reading
