@@ -1,6 +1,6 @@
 # HuGoS - Humans Go Swarming
  
- HuGoS - Humans Go Swarming - is a Unity-based framework for conducting online experiments on human collective behavior. It is especially suited for the experimental scenario's that are of interest to swarm robotics. For more info please read the corresponding journal paper: http://iridia.ulb.ac.be/IridiaTrSeries/link/IridiaTr2020-014.pdf
+ HuGoS - Humans Go Swarming - is a Unity-based framework for conducting online experiments on human collective behavior. It is especially suited for the experimental scenario's that are of interest to swarm robotics. For more info please read the [corresponding journal paper](http://iridia.ulb.ac.be/IridiaTrSeries/link/IridiaTr2020-014.pdf)
  
  
  ## Getting started
@@ -76,13 +76,98 @@ Follow the following steps:
 7. Go to your Photon Dashboard->manage your app->Webhooks and paste your link in the "BaseUrl" field
 
 ## Implementing a custom experiment
-
-TBD
+Unity offers the possibility to implement nearly any imaginable experimental scenario. Implementing a scenario requires some knowledge of the tools in possibilities present in Unity. The HuGoS code provides a convenient template suited to behavioral experiments that can be incrementally modified to one's own experiment ideas. We first clarify concepts that are important to understand when you start to make changes, then describe the structure of the HuGoS code, and suggest some straigtforward changes that can be made to the current implementation.
 
 ### Some basic notions 
 
+#### Scenes, Scripts and GameObjects
+In Unity, all gameplay happens within a certain *Scene*. Every time a new scene is loaded, all elements in that scene are newly instantiated. During the course of the game, you can jump from scene to scene by instantiating a new scene while still in the current scene. In HuGoS, there are different scenes for the lobby, the tutorial, and actual experiment trials, and the post-experiment lobby. For each of the 3 trials in the current implementation, the same scene is reloaded again. Using Photon, we can jump from one scene to the next using the following statement.
+```
+PhotonNetwork.LoadLevel("Tutorial");
+```
+When a scene is loaded, it instantiates sevaral *GameObjects*, as predefined by the experimenter during development. A GameObject can for example be a UI element (in the lobby, for example), a player avatar, or simple landmark element. Each GameObject can be a parent and/or a child object of other objects. A gameObject can posses sevaral components. For example, the player avatar GameObject has a mesh component that makes it visible in the game. Components can also be scripts that control how a particular GameObject behaves, or reacts to user input. Not every GameObject necessarily needs to be a 'physical' 3D object in the envrionment; some objects are 'empty' and merely serve to instantiate and execute a script, to control game mechanics. THe "GameManager" object and corresponding scripts are a good example of this.
+
+Sometimes, we wish to have multiple versions of the same GameObject in our scene. We can achieve this by making our GameObject into a *Prefab* by dragging it from the "Hierarchy" window to the "Asset" window. For example, we can make one lava-object, make it a prefab, and then spawn multiple lava-objects at different times and places in the game scene. Each instance of this gameObject has it's own instance of all components and scripts. That means that, although each lava-component might have the same "LavaGenerator" script, each of those scripts is executed independently. We can however have variables and functions that are always updated and executed across all instances and scripts. To do this, we make these variables or functions *static* by simply placing the word "static" in front of them when defining them.:
+```
+public static float Total_Score;
+```
+Having these static variables and functions in your code can become quite troublesome and lead to unwanted errors; it is easiest to avoid using static variables in most cases by always dealing with concrete instantiations of scripts. 
+*import image*
+However, sometimes we do want some informations to remain static. For example, when we start a new scene and all objects and scripts are re-instantiated, we still want to know in which trial we currently are. In other words, we want a variable "trial" that remains static throughout the whole experiment. The way this is dealt with in HuGoS is though the script "StaticVariables". This script is not linked to any scene or GameObject, but can be used to write and read variabes throughout the experiment.
+
+Not only can we have different instances of the same GameObject prefab in a scene, each client (participant) also has his own version of all these instances on his local computer. For example, each player has his own instance of all players on his local computer (see server structure in figure). A player can only control his own avatar, and the resulting movements have to be passed through the network to make his avatar move on the computer of all the other players. In the next section we'll see how this communication between clients works.
+
+#### Sending information across the network
+In HuGoS, each participant downloads his own instance of the game (in their browser for example). When a participant logs in, he connects to the Photon game server as a client. When you log into the server as the experimenter, you are the *Spectator* or *MasterClient*. Some parts of the game can be executed locally on the client (e.g., showing a sequence of tutorial texts), while other parts need to be synced through the server. As the masterclient, the experimeter can tightly control the course of the experiment. For example, although a sequence of tutorial texts can be passed through locally by the client, the trigger for starting the sequence is sent from the masterclient through the server to all clients. Most of the communication through the server happens between the masterclient and the other clients. Other clients also pass some information directely to each other, such as their avatar position.
+
+Every script that communicates via the server should be attached to a GameObject that conaints a *PhotonView* element. Clients can send information to each other via their this PhotonView. Photon contains a readymade solution for synchronizing avatar position and rotation across the network. This can be implemented by just adding the "Photon Transform View" to your avatars GameObject. If you wish to send other information/events across the network, then you should add the script from which you want to send this information to the "Observed Components" field in the PhotonView. Now let's look at how to send information from your script.
+
+Say that you change of experimental condition in the control panel, and want to inform all clients of that change. To achieve this, you can link the UI element where you indicate the condition to trigger a function in a script that is attached to a PhotonView, for example: 
+```
+public void ConditionChange()
+{
+  Condition = ConditionDropdown.GetComponent<Dropdown>().value;
+  photonView.RPC("ChangeCondition", RpcTarget.All, Condition); 
+}
+```
+In the first line of the function, we extract which condition we want the experiment to run in; in the second line we send this information to the other clients via a *Remote Procedure Call* (RPC) from our photonView. As arguments, we indicate the name of the function we want to execute remotely, the target clients (all of them), and the argument we want to pass in the remotely called function. Now let's look at the function we call remotely: 
+```
+[PunRPC]
+public void ChangeCondition(int Condition)
+{
+   StaticVariables.Condition = Condition;
+
+}
+```
+We indicate that this function is used to be called remotely by writing \[PunRPC] on top of it. Each client recieves the call to the function, together with the funciton argument (Condition) to from the Masterclient via the server to his own photonview, and then executes it locally. If we only want to send something to a specific player, the easiest way to achieve this is to pass the player-id of the player you want to send the message to as a function argument to you RPC function, and then include an if-statment that makes sure the action is only executed for that specific player. For example, the remotely called function for kicking a specific player from the game is implemented as follows.
+```
+[PunRPC]
+public void KickPlayerSide(int PlayerToKick)
+{
+    if(PhotonNetwork.LocalPlayer == PhotonNetwork.PlayerList[PlayerToKick])
+    {
+        MainCanvas.SetActive(false);
+        Disconnectedpannel.SetActive(true);
+        PhotonNetwork.Disconnect();
+    }
+}
+```
 ### An overview of the scripts
+These are the most important scripts that have to be adjusted when changeing the experiment setup.
+
+* **Staticvariables** saves and stores all variables that have to be kept track of between individual scenes during the course of the experiment, for example the participant ID's, the experimental condition, and the current trialnumber.
+* **Launcher** is active when a participant first opens the game, allows a participant to enter his ID and use this ID to connect to the server.
+* **PreLobbyWork** takes care of game mechanics in the lobby, lets participants pass through questionnaires and keeps track of the player count in the lobby.
+* **SaveAnswers** records the participants' answers to the questionnaires and saves them to the computer of the experimenter
+* **TutorialLauncer** starts the tutorialscene when all players are ready filling in the questionnaires
+
+* **GameManager** spawns players in the game, keeps track of game duration and loads next scene when time limit reached
+* **LavaSpawnerv2** spawns sequence of lava spills in each trial, receives the score associated with each spill and aggregates them to achieve a global score
+* **LavaGenerator** is a component of each lavaspill, makes the spill grow, detects players at edges and updates the spill mesh accordingly
+* **PlayerManager** calculates variables specific to a player, such as what is in their field of view, and makes that information available for data storage
+* **PlayerController** accepts user keyboard input
+* **PlayerMotor** executes avatar movements based on input received from PlayerController
+* **DataSender** collects data from the LavaSpawnerv2, PlayerManager, and GameManager scripts and saves them locally in a .csv file
+
+* **EndLobbyWork** handles post-game questionnaires in the last scene of the experiment
+
+Some of these scripts have a version that is specific to a tutorial (with prefix "TUT" or "TUTPART1") or to the stigmergy condition (with prefix "BLOCK")
 
 ### Easy changes to make
 
+**The content of the questionnaires** can be changed by going to the "PreRoomLobbyScene"-> Hierarchy->Canvas->Panel and changing the text input for the different UI elements.
+**The tutorial text** can be modified by going to the "TutorialScene"->Hierarchy->TutorialCanvas and changing the text input of the elements.
+**The number of trials** can be changed by changing the variable "NumberOfGames" in the GameManager and **adding a new spawning sequence** in the LavaSpawnerv2 script by modifying the funtion "DefineSequence".
+**The player avatar** can be easily changed by going to Assets-> resources -> PlayPref and changing the "Bulldozer" mesh to a 3D mesh of your choosing
+
+Other recommended changes and experiment variations will be incrementally added.
+
+
 ## Further reading
+
+* [Getting started with Unity](https://unity.com/learn/get-started)
+* [Learning C# and coding in Unity](https://unity3d.com/learning-c-sharp-in-unity-for-beginners)
+* [Photon Unity Networking Tutoial](https://doc.photonengine.com/zh-CN/pun/v2/demos-and-tutorials/pun-basics-tutorial/intro)
+* [Making a Multiplayer Game (video tutorial series)](https://www.youtube.com/watch?v=phDySdEKXcw&list=PLWeGoBm1YHVgXmitft-0jkvcTVhAtL9vG&ab_channel=InfoGamer)
+ 
+
