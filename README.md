@@ -37,7 +37,7 @@ To distribute the game ot participants, you can make a "build" of your game. You
 ## Running a basic experiment
 The version of HuGoS provided here comes with a basic task that requires participants to barricade as much lava as possible from different spills that are randomly appearing in the environment. Without any changes to the code, 4 conditions of this task are supported: the basic condition, the signalling condition, and the stigmergy condition (please see [our paper](http://iridia.ulb.ac.be/IridiaTrSeries/link/IridiaTr2020-014.pdf) for more details). Before starting an experiment, the experimenter should first schedule a session, recruit the desired number of participants, provide them with the link, and request them to log in at the scheduled time. 
 
-![alt text](https://github.com/[NicolasCoucke]/[HuGoS-code-MAIN]/blob/[master]/[HuGoS_doc_pics]/game_timeline.png?raw=true)
+![](HuGoS_doc_pics/game_timeline.png)
 
 
 A few minutes before the scheduled time, the experimenter can open the experiment session by logging in with their password. Once logged in, the experimenter enters the *game lobby* and sees a *control panel* where they can change the experimental condition, and the desired number of players. From the moment the experiment session is opened, participants can also enter the game lobby. Unlike the experimenter, participants are presented with a statement of informed consent and a pre-game questionnaire. Once a participant has completed the questionnaire, a green "OK" appears next to that player in the experimenter's view. The experimenter can also choose to *kick* a particular player from the experiment session. The experimenter can choose to either start the experiment automatically, when all participants completed the questionnaires, or manually by pressing the "override start" button.
@@ -60,7 +60,8 @@ InvokeRepeating("StoreGameData", 1f, 0.1f);
 ```
 
 ### Parsing the data
-The .csv file will contain the saved experiment data as specified above. Depending on your needs, you can import this file in, e.g., Matlab or Python, and write a script that extract the data you want to analyze. This will probably require some nested loops in order to extract, for example, the positional data of each player at each point in time. As an illustration, the figure below shows part of a .csv file saved from the pilot studies reported in [our paper](http://iridia.ulb.ac.be/IridiaTrSeries/link/IridiaTr2020-014.pdf).
+The .csv file will contain the saved experiment data as specified above. Depending on your needs, you can import this file in, e.g., Matlab or Python, and write a script that extract the data you want to analyze. This will probably require some nested loops in order to extract, for example, the positional data of each player at each point in time. As an illustration, the figure below shows part of a .csv file saved from the pilot studies reported in [our paper](http://iridia.ulb.ac.be/IridiaTrSeries/link/IridiaTr2020-014.pdf). The red cells are added for clarity.
+![](HuGoS_doc_pics/data_example.png)
 
 ### Sending data to a Google Sheet
 Saving data locally to the work station is the most straightforward option to store participant data. Alternatively, data can also be directly sent to a Google Sheet. This has the advantage that data could still keep being stored were the experimenter to experience connection issues. With some further modifications, it could also allow for experiments to be run without the presence of an experimenter. However, this approach causes additional bandwidth usages and is a potential point of failure so it is recommended to not use this approach when not strictly necessary.
@@ -95,10 +96,12 @@ Sometimes, we wish to have multiple versions of the same GameObject in our scene
 public static float Total_Score;
 ```
 Having these static variables and functions in your code can become quite troublesome and lead to unwanted errors; it is easiest to avoid using static variables in most cases by always dealing with concrete instantiations of scripts. 
-*import image*
+![](HuGoS_doc_pics/static_meme.jpg)
+
 However, sometimes we do want some informations to remain static. For example, when we start a new scene and all objects and scripts are re-instantiated, we still want to know in which trial we currently are. In other words, we want a variable "trial" that remains static throughout the whole experiment. The way this is dealt with in HuGoS is though the script "StaticVariables". This script is not linked to any scene or GameObject, but can be used to write and read variabes throughout the experiment.
 
 Not only can we have different instances of the same GameObject prefab in a scene, each client (participant) also has his own version of all these instances on his local computer. For example, each player has his own instance of all players on his local computer (see server structure in figure). A player can only control his own avatar, and the resulting movements have to be passed through the network to make his avatar move on the computer of all the other players. In the next section we'll see how this communication between clients works.
+![](HuGoS_doc_pics/Hugos_server_architecture.png)
 
 #### Sending information across the network
 In HuGoS, each participant downloads his own instance of the game (in their browser for example). When a participant logs in, he connects to the Photon game server as a client. When you log into the server as the experimenter, you are the *Spectator* or *MasterClient*. Some parts of the game can be executed locally on the client (e.g., showing a sequence of tutorial texts), while other parts need to be synced through the server. As the masterclient, the experimeter can tightly control the course of the experiment. For example, although a sequence of tutorial texts can be passed through locally by the client, the trigger for starting the sequence is sent from the masterclient through the server to all clients. Most of the communication through the server happens between the masterclient and the other clients. Other clients also pass some information directely to each other, such as their avatar position.
