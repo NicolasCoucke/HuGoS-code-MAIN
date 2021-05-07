@@ -97,8 +97,6 @@ public static float Total_Score;
 ```
 Having these static variables and functions in your code can become quite cumbersome and often lead to errors; it is easiest to avoid using static variables in most cases by always dealing with the concrete instantces of scripts. 
 
-![](HuGoS_doc_pics/static_meme.jpg)
-
 However, sometimes we do want some information to remain static. For example, when we start a new scene and all objects and scripts are re-instantiated, we still want to know in which experimental condition we currently are. In other words, we want a variable "condition" that remains static throughout the whole experiment. The way this is dealt with in HuGoS is through the script "StaticVariables". This script is not linked to any scene or GameObject, but can be used to write and read variabes throughout the experiment.
 
 Not only can we have different instances of the same GameObject prefab in a scene, each client (participant) also has their own version of all these instances on their local computer. For example, each player has their own instance of all players on their local computer (see the figure below). A player can only control their own avatar, and the resulting movements have to be passed through the network to make that avatar also move on the computer of all the other players. The next section explains this communication between clients.
